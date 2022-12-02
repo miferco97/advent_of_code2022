@@ -2,6 +2,7 @@ import sys
 import os
 from typing import List, Tuple
 
+
 class CaloriesList:
     max_value = 0
     min_value = 0
@@ -93,6 +94,16 @@ if __name__ == "__main__":
     # test_assertion(cal_list, 6000)
     # test_assertion(cal_list, 11100)
 
+    # Calories list is an ordered list so it is easy to find which elves has the higher amount of calories
     calories_elf = cal_list.internal_list[-1]
     print(
         f'the Elf with more calories is {calories_elf[1]}, with {calories_elf[0]} calories')
+
+    top_3_elves = cal_list.internal_list[-3:]
+    cummulative_calories = 0
+    elves_names = []
+    for calories, name in top_3_elves:
+        cummulative_calories += calories
+        elves_names.insert(0, name)
+    print(
+        f'the three elves with more calories are {elves_names} with a total amount of {cummulative_calories}')

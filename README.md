@@ -1,2 +1,2 @@
-# advent_of_code_2022
- 2022 AOC challenge
+# My resolution to 2022 Advent of code Challenge
+Try by yourself at https://adventofcode.com/

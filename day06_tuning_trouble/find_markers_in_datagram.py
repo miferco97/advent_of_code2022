@@ -15,12 +15,12 @@ def parse_dataframes(filename: str) -> List[str]:
 def find_first_marker(dataframe: str, n_chars: int = 4) -> int:
 
     last_n_chars = deque()
-    for i, character in enumerate(dataframe):
+    for i, character in enumerate(dataframe, start=1):
         last_n_chars.append(character)
         if len(last_n_chars) > n_chars:
             last_n_chars.popleft()
         if len(set(last_n_chars)) == n_chars:
-            return i+1
+            return i
 
     return -1
 

@@ -4,6 +4,8 @@ from typing import List, Tuple, Callable, Type
 from collections import deque
 from tqdm import tqdm
 
+MCM = 1
+
 
 class test:
     def __init__(self, div, true_case, false_case) -> None:
@@ -22,6 +24,8 @@ class Monkey:
         self.operation = self.parse_operation(operation)
         self.operation_str = operation
         self.test = divisibility_test
+        global MCM
+        MCM *= self.test.div
 
     def receive(self, item):
         self.items.append(item)
@@ -34,7 +38,9 @@ class Monkey:
         for i, item in enumerate(self.items.copy()):
             self.n_inspects += 1
             result = self.operation(item)
-            result = result//3
+            # result = result//3
+            global MCM
+            result = result % MCM
             throws.append((result, self.test(result)))
             self.items.popleft()
         return throws
@@ -100,18 +106,19 @@ if __name__ == "__main__":
         sys.exit(1)
     monkeys = parse_monkeys(input_file)
     print(monkeys)
-    for i in range(20):
-        # interest_rounds = [1, 20, 1000, 2000, 3000]
-        # for i in range(1000):
+    interest_rounds = [1, 20, 1000, 2000, 3000, 10000]
+    # for i in range(1, 21):
+    for i in range(1, 10001):
         play_round(monkeys)
-        # if i in interest_rounds:
-        #     print(f'== After round {i} ==')
-        #     for j, monkey in enumerate(monkeys):
-        #         print(
-        #             f'Monkey {j} inspected items {monkey.get_business()} times')
+        if i in interest_rounds:
+            print(f'== After round {i} ==')
+            for j, monkey in enumerate(monkeys):
+                print(
+                    f'Monkey {j} inspected items {monkey.get_business()} times')
 
     monkeys_copy = monkeys.copy()
     monkeys_copy.sort(key=lambda x: x.get_business())
+    print(monkeys_copy)
 
     print(
         f' the level of monkeys_business is : {monkeys_copy[-1].get_business() * monkeys_copy[-2].get_business()}')

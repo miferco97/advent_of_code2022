@@ -4,6 +4,8 @@ from typing import List, Tuple, Callable, Type, Any
 from collections import deque
 from tqdm import tqdm
 
+INVERT_LOGIC = False
+
 
 class Matrix():
     def __init__(self, data, n_rows, n_cols):
@@ -65,7 +67,10 @@ class Node():
         return self.cost
 
     def is_goal(self):
-        return True if self.height == 'E' else False
+        if INVERT_LOGIC:
+            return True if self.height == 'a' or self.height == 'S' else False
+        else:
+            return True if self.height == 'E' else False
 
     def get_value(self):
         return self.parse_height_into_value(self.height)
@@ -94,8 +99,12 @@ class Node():
             elif j_coord < 0 or j_coord > matrix.n_cols-1:
                 continue
             # print(f'looking for {i_coord}, {j_coord}')
-            if self.get_value() < self.parse_height_into_value(matrix(i_coord, j_coord)) - 1:
-                continue
+            if INVERT_LOGIC:
+                if self.get_value() - 1 > self.parse_height_into_value(matrix(i_coord, j_coord)):
+                    continue
+            else:
+                if self.get_value() < self.parse_height_into_value(matrix(i_coord, j_coord)) - 1:
+                    continue
             sons.append(Node(i_coord, j_coord, height=matrix(
                 i_coord, j_coord), parent=self))
         # print('sons:', sons)
@@ -105,8 +114,12 @@ class Node():
 def get_initial_node(matrix: Matrix):
     for i in range(matrix.n_rows):
         for j in range(matrix.n_cols):
-            if matrix(i, j) == 'S':
-                return Node(i, j, 'a', None)
+            if INVERT_LOGIC:
+                if matrix(i, j) == 'E':
+                    return Node(i, j, 'z', None)
+            else:
+                if matrix(i, j) == 'S':
+                    return Node(i, j, 'a', None)
     return None
 
 
@@ -115,6 +128,12 @@ if __name__ == "__main__":
     input_file = ""
     if len(sys.argv) > 1:
         input_file = sys.argv[1]
+        if len(sys.argv) > 2:
+            if sys.argv[2] == '--invert':
+                INVERT_LOGIC = True
+                print('Inverting logic')
+            else:
+                print('If want to invert write --invert')
     if not os.path.exists(input_file):
         print("file provided does not exists")
         sys.exit(1)
@@ -142,7 +161,7 @@ if __name__ == "__main__":
         nodes_to_visit.pop(0)
         n_visited += 1
         # print(f'{n_visited}/{total_nodes}')
-        print(f'{len(visited_nodes)}/{total_nodes}')
+        # print(f'{len(visited_nodes)}/{total_nodes}')
         for son_node in node.get_sons(height_matrix):
             if son_node.is_goal():
                 end_node = son_node

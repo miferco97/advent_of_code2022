@@ -74,7 +74,7 @@ def parse_path_to_values(paths: List) -> List:
     return values
 
 
-def parse_regolith(filename: str) -> Matrix:
+def parse_regolith(filename: str, infinite_fall=True) -> Matrix:
     data = []
     n_cols = 0
     n_rows = 0
@@ -88,22 +88,33 @@ def parse_regolith(filename: str) -> Matrix:
                 x, y = elem.strip().split(',')
                 individual_path.append((x, y))
             paths.append(individual_path.copy())
-        print(paths)
+        # print(paths)
 
     values_list = parse_path_to_values(paths)
-    print(values_list)
+    # print(values_list)
+
+    if not infinite_fall:
+        max_depth = max([y for x, y in values_list]) + 2
+        x = SAND_POINT[0]
+        d = max_depth-SAND_POINT[1]
+
+        for i in range(x-d, x+d+1):
+            value = (i, max_depth)
+            # print(value)
+            values_list.append(value)
+
+            # global SAND_POINT
+
     x_values = [x for x, y in values_list]
     y_values = [y for x, y in values_list]
     x_values.append(SAND_POINT[0])
     y_values.append(SAND_POINT[1])
-
-    # global SAND_POINT
     min_x, max_x = min(x_values), max(x_values)
     min_y, max_y = min(y_values), max(y_values)
     n_cols, n_rows = max_x-min_x+1, max_y-min_y+1
-    print(n_rows, n_cols)
+    # print(n_rows, n_cols)
     matrix = Matrix(['.']*n_cols*n_rows, n_rows, n_cols)
-    print(matrix)
+    # print(matrix)
     for x, y in values_list:
         x, y = x-min_x, y-min_y
         matrix.set('#', y, x)
@@ -127,6 +138,7 @@ def step(regolith: Matrix) -> bool:
     s_i, s_j = regolith.sand_generator
     particle = [s_i, s_j]
     last_particle = [s_i, s_j]
+    first_step = True
 
     while True:
         try:
@@ -135,30 +147,56 @@ def step(regolith: Matrix) -> bool:
             return False
         if particle == []:
             regolith.set('o', *last_particle)
-            return True
+            return True if not first_step else False
         if particle[0] < 0 or particle[1] < 0:
             return False
         if particle[0] >= regolith.n_rows or particle[1] >= regolith.n_cols:
             return False
         else:
+            first_step = False
             last_particle = particle
 
 
 if __name__ == "__main__":
     # Read the input file in the first argument
     input_file = ""
-    if len(sys.argv) > 1:
+    visualize = False
+    if len(sys.argv) > 2:
         input_file = sys.argv[1]
+        visualize = bool(sys.argv[2])
+    elif len(sys.argv) > 1:
+        input_file = sys.argv[1]
+        print('Visualizer is Turned off by default, add True argument to visualize')
+
     if not os.path.exists(input_file):
         print("file provided does not exists")
         sys.exit(1)
-
-    regolith = parse_regolith(input_file)
-    print(regolith)
-    print('------------------------')
-    while step(regolith):
-        pass
-    print(regolith)
-
+    # Part1
+    regolith = parse_regolith(input_file, True)
+    if visualize:
+        print(regolith)
+        while step(regolith):
+            pass
+        print('----------------------------------')
+        print(regolith)
+    else:
+        while step(regolith):
+            pass
     total = sum([1 for x in regolith.data if x == 'o'])
     print(f'The total number of sand particles are {total}')
+
+    # Part2
+    regolith = parse_regolith(input_file, False)
+    if visualize:
+        print(regolith)
+        while step(regolith):
+            pass
+        print('----------------------------------')
+        print(regolith)
+    else:
+        while step(regolith):
+            pass
+        pass
+
+    total = sum([1 for x in regolith.data if x == 'o'])
+    print(f'The total number of sand particles with limited floor are {total}')

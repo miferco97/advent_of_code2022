@@ -85,6 +85,24 @@ def is_ordered(lhs, rhs) -> Union[bool, None]:
     return False
 
 
+class Package:
+    def __init__(self, content, pin=False) -> None:
+        self.content = content
+        self.pin = pin
+
+    def __lt__(self, other):
+        return is_ordered(self.content, other.content)
+
+    def __gt__(self, other):
+        return not is_ordered(self.content, other.content)
+
+    def __repr__(self):
+        return f'PKG : {self.content}'
+
+    def has_pin(self) -> bool:
+        return self.pin
+
+
 if __name__ == "__main__":
     # Read the input file in the first argument
     input_file = ""
@@ -96,12 +114,32 @@ if __name__ == "__main__":
 
     packages = parse_packages(input_file)
 
-    packages = parse_packages(input_file)
     right_order_list = []
 
-    for i, (lhs, rhs) in enumerate(packages, start=1):
+    for i, (lhs, rhs) in enumerate(packages.copy(), start=1):
         value = is_ordered(lhs, rhs)
         if value:
             right_order_list.append(i)
     print('The correct indices were:', right_order_list)
     print('Their sum is:', sum(right_order_list))
+
+    packets = [Package([[2]], True), Package([[6]], True)]
+
+    for x, y in packages.copy():
+        packets.append(Package(x))
+        packets.append(Package(y))
+
+    ordered_packets = packets.copy()
+
+    for j in range(len(ordered_packets)):
+        for i in range(1, len(ordered_packets)):
+            if ordered_packets[i-1] > ordered_packets[i]:
+                ordered_packets[i -
+                                1], ordered_packets[i] = ordered_packets[i], ordered_packets[i-1]
+    pinned_packages = []
+    for i, x in enumerate(ordered_packets, start=1):
+        if x.has_pin():
+            # print(f'Pinned package at {i}')
+            pinned_packages.append(i)
+        # print(x)
+    print(f'The decoder key is: {pinned_packages[0]*pinned_packages[1]}')

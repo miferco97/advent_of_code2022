@@ -169,13 +169,3 @@ if __name__ == "__main__":
             pass
         # print(chamber)
     print(chamber.higher_y)
-    # chamber.add_rock(['@@@@'])
-    # print(chamber)
-    # chamber.step('<')
-    # print(chamber)
-    # chamber.step('<')
-    # print(chamber)
-    # chamber.step('<')
-    # print(chamber)
-    # chamber.step('>')
-    # print(chamber)

@@ -5,7 +5,6 @@ from typing import List, Tuple, Union, Any, Dict
 
 REMAINING_TIME = 30
 
-
 class Node():
     def __init__(self, name, valve_value, connections, graph, parent=None):
         self.name = name
@@ -16,10 +15,11 @@ class Node():
 
     def __repr__(self) -> str:
         opened = 'opened' if self.valve_is_opened else 'closed'
-        return f'{self.name}: valve {opened} -> connects to {self.connections}\n'
+        return f'{self.name}: valve  with values {self.value} is {opened} -> connects to {self.connections}\n'
 
     def get_value_expected(self, remaining_time):
-        return self.value*(remaining_time-1)
+        # print(f'{remaining_time=}')
+        return self.value*(remaining_time)
 
     def get_name(self):
         return self.name
@@ -39,7 +39,6 @@ def parse_graph(filename) -> Dict:
 
     return graph
 
-
 def find_best_path(origin: str, dest: str, graph: Dict[str, Node]):
     visited = {}
     to_visit = [graph[origin]]
@@ -48,7 +47,6 @@ def find_best_path(origin: str, dest: str, graph: Dict[str, Node]):
     while to_visit:
         node = to_visit.pop(0)
         if node.name == dest:
-            # print('founded')
             break
         for connection in graph[node.name].connections:
             if costs.get(connection) is None and visited.get(connection) is None:
@@ -56,7 +54,6 @@ def find_best_path(origin: str, dest: str, graph: Dict[str, Node]):
                 to_visit.append(graph[connection])
                 to_visit[-1].parent = graph[node.name]
         to_visit.sort(key=lambda x: costs[x.name])
-
     parent = node.parent
     path = [node.name]
     while parent is not None:
@@ -65,12 +62,39 @@ def find_best_path(origin: str, dest: str, graph: Dict[str, Node]):
     return path[::-1]
 
 
-def compute_expected_presure_release(final_path, orig, elaped_time: int, elapsed_valves: List, graph):
-    if len(elapsed_valves) == 1:
-        return graph[elapsed_valves[0]]
+# def compute_expected_presure_release(final_path, orig, elaped_time: int, elapsed_valves: List, graph):
+#     if len(elapsed_valves) == 1:
+#         return graph[elapsed_valves[0]]
+#     for valve in elapsed_valves:
+#         pass
 
-    for valve in elapsed_valves:
-        pass
+RECUR_END=0
+def find_best_combination(starting_node:str, _elapsed_time:int,accum_preasure_released:int, graph:Dict[str,Node], _open_valves:List[str],came_from=None,has_opened=False)->int:
+    childs=graph[starting_node].connections.copy()
+    elapsed_time = _elapsed_time+1
+    open_valves=_open_valves.copy()
+    max_value = accum_preasure_released
+    if elapsed_time >= REMAINING_TIME or len(graph.keys()) == len(_open_valves):
+        global RECUR_END
+        RECUR_END+=1
+        print(f'break time {RECUR_END}')
+        return 0
+    if starting_node not in open_valves and graph[starting_node].value != 0:
+        childs.append('open')
+    if not has_opened and came_from is not None:
+        childs.remove(came_from)
+    for possibility in childs:
+        preasure_released = accum_preasure_released
+        if possibility == 'open':
+            open_valves.append(starting_node)
+            preasure_released += graph[starting_node].get_value_expected(REMAINING_TIME-elapsed_time) 
+            preasure_released += find_best_combination(starting_node,elapsed_time,preasure_released,graph,open_valves,has_opened=True)
+        else:
+            preasure_released += find_best_combination(possibility,elapsed_time,preasure_released,graph,open_valves,came_from=starting_node,has_opened=False)
+        if preasure_released > max_value:
+            max_value = preasure_released
+            # print(starting_node)
+    return max_value
 
 
 if __name__ == "__main__":
@@ -86,13 +110,12 @@ if __name__ == "__main__":
     print(graph)
     closed_valves = []
     for key, value in graph.items():
-        print(key)
         if value.value != 0:
             closed_valves.append(key)
-    print(closed_valves)
     # return pressure
     # for depth in range(len(closed_valves)):
     #     path = find_best_path(orig, depth[closed_valves])
-
-    possibilities = itertools.permutations(closed_valves, 5)
-    print([x for x in possibilities])
+    # possibilities = itertools.permutations(closed_valves, 5)
+    # print([x for x in possibilities])
+    max_value = find_best_combination('AA',0,0,graph,[])
+    print(max_value)
